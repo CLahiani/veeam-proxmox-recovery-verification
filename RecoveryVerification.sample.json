@@ -3,15 +3,13 @@
     "VbrServer": "vbr.example.local",
     "VbrPort": 9419,
     "VbrApiVersion": "1.3-rev2",
-    "NodeCredentialsName": "root@pve-node01"
+    "NodeCredentialsName": "root@pve-node01",
+    "TargetServerName": ""
   },
   "Proxmox": {
-    "ApiHost": "pve-node01.example.local",
+    "ApiHost": "localhost",
     "ApiPort": 8006,
-    "Node": "pve-node01",
-    "SshHost": "pve-node01.example.local",
-    "SshUser": "root",
-    "SshKeyPath": "~/.ssh/id_ed25519",
+    "Node": "",
     "MountRoot": "/run/media/Veeam.Mount.Disks"
   },
   "Target": {
@@ -48,21 +46,23 @@
   },
   "AppChecks": {
     "*": [
-      { "Type": "Tcp", "Port": 22, "Label": "SSH" }
+      { "Type": "GuestExec", "Command": "systemctl is-system-running --wait || true", "ExpectedOutput": "running|degraded", "Label": "systemd up" }
     ],
     "SRV-AD01": [
-      { "Type": "Ldap", "Port": 389, "Label": "LDAP" },
-      { "Type": "Dns", "Name": "example.local", "Label": "Zone DNS" },
-      { "Type": "Tcp", "Port": 88, "Label": "Kerberos" }
+      { "Type": "GuestExec", "Shell": "powershell", "Command": "(Get-Service NTDS,DNS,Kdc | Where-Object Status -ne Running | Measure-Object).Count", "ExpectedOutput": "^0", "Label": "AD DS, DNS, KDC running" },
+      { "Type": "GuestExec", "Shell": "powershell", "Command": "(Resolve-DnsName example.local -Server 127.0.0.1 -DnsOnly | Measure-Object).Count", "ExpectedOutput": "^[1-9]", "Label": "DNS zone answers" }
     ],
     "SRV-FILE01": [
-      { "Type": "Tcp", "Port": 445, "Label": "SMB" }
+      { "Type": "GuestExec", "Shell": "powershell", "Command": "(Get-Service LanmanServer).Status", "ExpectedOutput": "Running", "Label": "SMB server" }
     ],
     "SRV-WEB01": [
-      { "Type": "Http", "Url": "https://{ip}/health", "ExpectedStatus": 200, "Label": "Health endpoint" }
+      { "Type": "GuestExec", "Command": "curl -sk -o /dev/null -w '%{http_code}' https://localhost/health", "ExpectedOutput": "^200", "Label": "Health endpoint" }
     ],
     "SRV-SQL01": [
-      { "Type": "Sql", "Port": 1433, "Query": "SELECT COUNT(*) FROM sys.databases WHERE state_desc='ONLINE'", "Label": "Bases ONLINE" }
+      { "Type": "GuestExec", "Shell": "powershell", "Command": "(Get-Service MSSQLSERVER).Status", "ExpectedOutput": "Running", "Label": "SQL Server service" }
+    ],
+    "SRV-LEGACY01": [
+      { "Type": "Tcp", "Port": 22, "Label": "SSH (from this host, needs a route to the isolated VLAN)" }
     ]
   }
 }

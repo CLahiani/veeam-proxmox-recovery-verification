@@ -2,6 +2,16 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). / Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [2.0.0] - 2026-09-16
+
+### Changed / Modifié
+- **EN** Rewritten in **Python 3** (`pve_backup_boot.py`, standard library only) and designed to **run on the Proxmox VE node** as root: no Windows probe, no SSH layer, `qm` / `qemu-img` / Proxmox API local. New **`GuestExec` check type** runs application tests *inside* the test VM through the QEMU guest agent (`agent/exec`), so no machine needs a NIC on the isolated VLAN; `Tcp` / `Http` / `Ldap` / `Dns` / `Sql` kept as optional network checks (`dnspython`, `ldap3`, `pymssql`). Secrets via `--secrets-file` (chmod 600), environment variables or prompt — never in the JSON. CLI: `-v/--vm`, `--cleanup`, `--dry-run`, `--ping-check`, `--fail-on-warning`, `-l en|fr`, `--verify-tls`, `--debug`, `--init-config`. `deploy/` adds a systemd service + timer and a daily rotation helper. Same checkpoints CP00–CP40, same HTML / CSV / JSON reports, same exit codes.
+- **FR** Réécriture en **Python 3** (`pve_backup_boot.py`, bibliothèque standard uniquement), conçue pour **s'exécuter sur le nœud Proxmox VE** en root : plus de sonde Windows, plus de couche SSH, `qm` / `qemu-img` / API Proxmox en local. Nouveau **type de contrôle `GuestExec`** exécutant les tests applicatifs *dans* la VM de test via le QEMU guest agent (`agent/exec`) : aucune machine n'a besoin d'une NIC sur le VLAN isolé ; `Tcp` / `Http` / `Ldap` / `Dns` / `Sql` conservés comme contrôles réseau optionnels (`dnspython`, `ldap3`, `pymssql`). Secrets via `--secrets-file` (chmod 600), variables d'environnement ou saisie — jamais dans le JSON. CLI : `-v/--vm`, `--cleanup`, `--dry-run`, `--ping-check`, `--fail-on-warning`, `-l en|fr`, `--verify-tls`, `--debug`, `--init-config`. `deploy/` ajoute un service + timer systemd et un script de rotation quotidienne. Mêmes points de contrôle CP00–CP40, mêmes rapports HTML / CSV / JSON, mêmes codes de sortie.
+- **EN/FR** Configuration: `Proxmox.Ssh*` removed; `Proxmox.ApiHost` defaults to `localhost`, `Proxmox.Node` and `Veeam.TargetServerName` default to this host. / Configuration : `Proxmox.Ssh*` supprimé ; `Proxmox.ApiHost` par défaut `localhost`, `Proxmox.Node` et `Veeam.TargetServerName` par défaut = cet hôte.
+
+### Deprecated / Déprécié
+- **EN/FR** The v1 PowerShell script moves to `legacy/` and is no longer maintained. / Le script PowerShell v1 passe dans `legacy/` et n'est plus maintenu.
+
 ## [1.0.0] - 2026-09-16
 
 ### Added / Ajouté

@@ -1,0 +1,5 @@
+# Core: standard library only (Python 3.9+). Nothing to install for GuestExec / Tcp / Http checks.
+# Optional, only for network checks executed from this host:
+dnspython>=2.4   # Dns check
+ldap3>=2.9       # Ldap check
+pymssql>=2.2     # Sql check
