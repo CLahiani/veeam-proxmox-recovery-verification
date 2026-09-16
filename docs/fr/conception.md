@@ -33,16 +33,22 @@ Conséquences :
 - **Non mesuré** : la durée d'un véritable Entire VM Restore vers Proxmox VE (déploiement des workers, injection VirtIO, copie complète vers le stockage cible). En planifier un manuellement par trimestre et conserver la session comme preuve.
 - **Performances en lecture** : celles du dépôt à travers FUSE — comparables à un Instant Recovery avant migration. Suffisant pour démarrage + contrôles de services ; ce n'est pas un test de charge.
 
+## Pourquoi Python, sur le nœud (v2.0)
+
+La v1 était un script PowerShell sur une sonde Windows qui pilotait le nœud en SSH. Cela fonctionnait sur le papier mais avec trois coûts structurels : gestion de clé SSH et `root@pam` depuis une seconde machine ; cmdlets Windows uniquement (`Test-NetConnection`, `Resolve-DnsName`, `Invoke-Sqlcmd`) inexistantes en PowerShell Linux ; et une NIC de sonde sur le VLAN isolé pour les contrôles applicatifs, alors que CP02 interdit au nœud lui-même d'en avoir une.
+
+Exécuter **Python sur le nœud Proxmox** supprime les trois. Python 3 est livré avec chaque nœud ; `qm`, `qemu-img` et l'API sont locaux ; et les contrôles applicatifs s'exécutent **dans les invités via le QEMU guest agent** (`GuestExec`), si bien qu'aucune machine n'a besoin d'un pied dans le réseau isolé — ce qui est aussi plus proche de la façon dont SureBackup exécute ses scripts de test applicatif. L'outil n'utilise que la bibliothèque standard ; la planification est un timer systemd. La version PowerShell est conservée sous `legacy/` pour référence et n'est plus maintenue.
+
 ## Modèle de sécurité
 
 - Les seules cibles d'écriture sont les **overlays** sous `Target.OverlayStoragePath` sur le nœud de vérification. Fichiers de sauvegarde, dépôts et VM de production ne sont jamais ouverts en écriture.
 - L'isolement réseau est contrôlé sous deux angles : **structure** (CP02 : bridge sans IP sur le nœud ; un uplink exige une confirmation explicite et consignée que le VLAN n'est pas routé) et **occupants** (CP03 avant, CP21 après — une fuite arrête la VM immédiatement).
-- Les VM de test sont reconnaissables de trois façons : préfixe de nom, plage VMID réservée, marqueur de description. CP04 refuse de démarrer s'il en reste d'une exécution précédente (sauf `-Cleanup`).
-- Toutes les opérations Veeam s'exécutent sous un rôle VBR standard (Backup Administrator / Restore Operator) ; le SSH vers le nœud n'est nécessaire que parce que `qm` n'accepte les chemins de disque absolus que pour `root@pam`.
+- Les VM de test sont reconnaissables de trois façons : préfixe de nom, plage VMID réservée, marqueur de description. CP04 refuse de démarrer s'il en reste d'une exécution précédente (sauf `--cleanup`).
+- Toutes les opérations Veeam s'exécutent sous un rôle VBR standard (Backup Administrator / Restore Operator). Le script tourne en root sur le nœud parce que `qm` n'accepte les chemins de disque absolus que pour `root@pam` et que la publication FUSE atterrit sous `/run/media`. Les secrets viennent d'un fichier `chmod 600` ou de l'environnement, jamais du JSON de configuration.
 
 ## Limites connues / évolutions
 
-- Ordre des disques : les overlays sont attachés `scsi0…N` dans l'ordre de listage des images ; les VM multi-disques dont le disque de boot n'est pas le premier peuvent nécessiter un ajustement de `--boot order` (`New-TestVm`).
+- Ordre des disques : les overlays sont attachés `scsi0…N` dans l'ordre de listage des images ; les VM multi-disques dont le disque de boot n'est pas le premier peuvent nécessiter un ajustement de `--boot order` (`create_test_vm`).
 - Le matériel virtuel (type de BIOS, type d'OS, mémoire) vient de `VmDefaults` / `VmOverrides`, pas de la sauvegarde. Une version future pourrait lire le `qm config` d'origine via l'API Proxmox quand la VM source existe encore.
 - Un nœud de vérification à la fois ; publication séquentielle par VM par conception (attribution non ambiguë des images disque).
 - Si Veeam livre un endpoint REST supporté pour l'Entire VM Restore / Instant Recovery vers Proxmox VE, un second mode mesurant le vrai chemin de restauration devra être ajouté à côté de celui-ci — comme pour Nutanix AHV dans le [projet frère](https://github.com/CLahiani/veeam-ahv-recovery-verification).

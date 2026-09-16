@@ -2,116 +2,102 @@
 
 [← README](../../README.md) · [Guide utilisateur →](guide-utilisateur.md) · 🇬🇧 [English version](../en/installation.md)
 
+Le script s'exécute **sur le nœud Proxmox VE** qui hébergera les VM de test (en root). Veeam publie les disques de sauvegarde sur ce même nœud, `qm` / `qemu-img` sont locaux, l'API Proxmox est locale — pas de SSH, pas de sonde Windows.
+
 ## 1. Logiciels
 
 | Composant | Exigence |
 |---|---|
-| PowerShell | **7.2 ou supérieur** (`pwsh`) sur la machine sonde. |
-| Client OpenSSH | `ssh.exe` dans le `PATH` (intégré à Windows 10/11 et Windows Server 2019+). Authentification par clé, non interactive, vers le nœud Proxmox. |
-| Veeam Backup & Replication | **13.x** avec API REST activée (port 9419). `Veeam.VbrApiVersion` = `1.3-rev2` pour 13.1, `1.3-rev1` pour 13.0. Veeam Plug-in for Proxmox VE installé et nœuds Proxmox ajoutés à l'infrastructure de sauvegarde. |
-| Proxmox VE | **8.2 – 9.x** (versions prises en charge par le plug-in Veeam). Un nœud désigné comme *nœud de vérification*. |
-| VM sources | **QEMU guest agent** installé et activé (`agent: 1`) — nécessaire pour CP22 (IP), CP23 et CP30. |
-| Module `SqlServer` | Uniquement si des contrôles `Sql` sont définis : `Install-Module SqlServer -Scope CurrentUser`. |
-| OS de la sonde | Windows recommandé (`Test-NetConnection`, `Resolve-DnsName` utilisés par les contrôles Tcp / Ldap / Dns). |
+| Proxmox VE | **8.2 – 9.x** (versions prises en charge par le plug-in Veeam). Python 3.9+ déjà présent (Debian 12/13). `qm`, `qemu-img`, `ping` présents par défaut. |
+| Modules Python | **Aucun pour le cœur** (bibliothèque standard). Optionnels, uniquement pour les contrôles réseau lancés depuis le nœud : `dnspython`, `ldap3`, `pymssql` (`pip install -r requirements.txt` ou `apt install python3-dnspython python3-ldap3 python3-pymssql`). |
+| Veeam Backup & Replication | **13.x**, API REST sur 9419. `Veeam.VbrApiVersion` = `1.3-rev2` (13.1) / `1.3-rev1` (13.0). Veeam Plug-in for Proxmox VE installé, nœuds ajoutés à l'infrastructure de sauvegarde, au moins une sauvegarde réussie des VM à vérifier. |
+| VM sources | **QEMU guest agent** installé et activé (`agent: 1`) — requis pour CP22 (IP) et pour les contrôles applicatifs `GuestExec`. |
 
 ## 2. Architecture
 
 ```
- sonde (PowerShell) ──REST 9419──▶ VBR 13.x ──Data Integration API (SSH, agent temporaire)──▶ nœud Proxmox
- sonde ──SSH 22 (clé)───────────▶ nœud Proxmox : qemu-img, qm
- sonde ──REST 8006 (jeton API)──▶ API Proxmox : nœuds, réseau, état/config VM, guest agent
- sonde ──(2e NIC sur le bridge/VLAN isolé)──▶ VM de test : ping, contrôles applicatifs
+ nœud PVE ── python3 pve_backup_boot.py
+   │  REST 9419 ─▶ VBR 13.x : points de restauration, identifiants, Data Integration API (publish / unpublish), sessions
+   │  (VBR ─SSH 22─▶ ce nœud : déploie son agent FUSE temporaire, publie les disques bruts sous /run/media/Veeam.Mount.Disks)
+   │  local        : qemu-img create (overlays), qm create / start / stop / destroy
+   │  REST 8006 ─▶ API Proxmox (localhost, jeton) : nœud, réseau, état/config VM, guest agent (IP, exec)
+   └─ VM de test sur <bridge isolé>[,tag=<VLAN>] ; contrôles applicatifs exécutés DANS les invités via le guest agent
 ```
 
 ## 3. Côté Veeam
 
 ### 3.1 Identifiants Linux du nœud, stockés dans VBR
 
-La Data Integration API déploie un agent FUSE temporaire sur le serveur Linux cible via SSH. Elle a besoin d'un **enregistrement d'identifiants stocké dans VBR** :
+La Data Integration API déploie un agent FUSE temporaire sur le serveur Linux cible via SSH **depuis le serveur VBR**. Elle a besoin d'un enregistrement d'identifiants stocké dans VBR :
 
-*Console Veeam → Menu → Credentials and Passwords → Datacenter Credentials → Add → Linux account* — utilisateur `root`, mot de passe root du nœud (ou clé), description par ex. `root@pve-node01`. Pas d'élévation nécessaire pour root.
+*Console Veeam → Menu → Credentials and Passwords → Datacenter Credentials → Add → Linux account* — utilisateur `root`, mot de passe root du nœud (ou clé privée), description par ex. `root@pve-node01`.
 
-Le script retrouve cet enregistrement par **nom d'utilisateur ou description** (`Veeam.NodeCredentialsName`) via `GET /api/v1/credentials?typeFilter=Linux` et passe son ID dans la requête de publication. Le point de contrôle **CP01** échoue s'il est introuvable.
+Le script le retrouve par **utilisateur ou description** (`Veeam.NodeCredentialsName`) via `GET /api/v1/credentials?typeFilter=Linux` et passe son ID dans la requête de publication (CP01 échoue sinon). Le nœud est déjà connu de VBR comme *Proxmox VE server* ; la requête de publication le désigne par son nom (`Veeam.TargetServerName`, défaut : FQDN de cet hôte) comme simple hôte Linux — inutile de l'ajouter une seconde fois.
 
-> Le nœud Proxmox est déjà connu de VBR comme *Proxmox VE server* (via le plug-in). La requête de publication le désigne par son nom (`targetServerName`) comme simple hôte Linux — inutile de l'ajouter une seconde fois comme *Linux server*.
+Pare-feu : le **serveur VBR doit joindre le nœud sur 22/tcp** (SSH) et les ports de l'agent FUSE — voir *Ports* dans le guide utilisateur VBR (Disk Publishing).
 
 ### 3.2 Compte VBR pour le script
 
-Un utilisateur (ou rôle RBAC personnalisé 13.1) avec **droits de restauration** : *Backup Administrator* ou *Restore Operator*. Les endpoints Data Integration API sont documentés comme accessibles aux deux.
+*Backup Administrator* ou *Restore Operator* (ou rôle personnalisé 13.1 avec droits de restauration). Passé via `VBR_USER` / `VBR_PASSWORD` (environnement, fichier de secrets ou saisie).
 
 ## 4. Côté Proxmox
 
 ### 4.1 Réseau isolé — le fondement de sécurité
 
-Créer, sur le nœud de vérification, l'une des deux options :
-
 | Option | Configuration | Comportement CP02 |
 |---|---|---|
-| **A. Bridge dédié sans uplink** (recommandé si la sonde peut être une VM sur le même nœud) | `vmbr1` avec `bridge_ports none`, **aucune adresse IP** sur le nœud. VM de test et VM sonde s'y attachent. | `OK` — isolement structurel. |
-| **B. Bridge partagé + tag VLAN dédié** | `vmbr1` (VLAN-aware) avec uplink ; les VM de test reçoivent `tag=<VLAN>`. Le VLAN **ne doit** avoir d'interface L3 nulle part et doit être retiré de tous les trunks sauf le port de la sonde. | `KO` tant que `Isolation.SwitchIsolationConfirmed: true` n'est pas positionné — le script ne peut pas vérifier le commutateur physique ; la confirmation de l'équipe réseau est consignée dans la configuration et affichée dans le rapport. |
+| **A. Bridge dédié sans uplink** | `vmbr1`, `bridge_ports none`, **aucune IP** sur le nœud. | `OK` — isolement structurel. |
+| **B. Bridge partagé + tag VLAN dédié** | `vmbr1` (VLAN-aware) avec uplink ; VM de test avec `tag=<VLAN>`. Le VLAN **ne doit** avoir d'interface L3 nulle part et doit être retiré de tous les trunks. | `KO` tant que `Isolation.SwitchIsolationConfirmed: true` n'est pas positionné — le script ne voit pas le commutateur ; la confirmation de l'équipe réseau est consignée et affichée dans le rapport. |
 
-Dans les deux cas, le nœud lui-même ne doit **pas** porter d'IP ni de passerelle sur le bridge (vérifié par CP02, bloquant). `firewall=1` est positionné sur la NIC de test afin de pouvoir ajouter des règles de pare-feu Proxmox si souhaité.
+Dans les deux cas le nœud ne doit **pas** porter d'IP ni de passerelle sur le bridge (CP02, bloquant). Les contrôles applicatifs s'exécutant **dans les invités** via le guest agent, le nœud n'a besoin d'aucun accès au réseau isolé — c'est tout l'intérêt de tourner sur le nœud.
 
 ### 4.2 Stockage des overlays
 
-Un **chemin local au nœud, de type fichier**, pour les overlays qcow2 : `Target.OverlayStoragePath`, par ex. `/var/lib/vz/images/rv-overlays` (stockage directory), un point de montage ZFS ou NFS. Les overlays ne contiennent que les blocs écrits par l'invité pendant le test (quelques centaines de Mo par VM en général). Le script crée le dossier s'il manque. Un stockage bloc (LVM-thin) **ne convient pas** aux overlays ; il reste utilisable pour le disque de variables EFI (`VmDefaults.EfiStorage`).
+`Target.OverlayStoragePath` : chemin **local au nœud, de type fichier**, pour les overlays qcow2 (stockage directory comme `/var/lib/vz/images/rv-overlays`, dataset ZFS, montage NFS). Les overlays ne contiennent que les blocs écrits pendant le test. Créé automatiquement. LVM-thin ne convient pas aux overlays mais reste utilisable pour le disque EFI (`VmDefaults.EfiStorage`).
 
 ### 4.3 Jeton API
 
-*Datacenter → Permissions → API Tokens → Add* — utilisateur `root@pam` (ou un utilisateur dédié), id de jeton par ex. `rv`, **Privilege Separation décoché** (ou accorder au jeton lui-même les rôles ci-dessous). Noter le secret ; il n'est affiché qu'une fois.
+*Datacenter → Permissions → API Tokens → Add* : utilisateur `root@pam` (ou dédié), id de jeton par ex. `rv`, *Privilege Separation* décoché (ou accorder au jeton les rôles ci-dessous). Privilèges minimaux sur `/nodes/<node>` et `/vms` : `Sys.Audit`, `VM.Audit`, `VM.Allocate`, `VM.Config.*`, `VM.PowerMgmt`, `VM.Monitor`, `VM.GuestAgent.Audit` et `VM.GuestAgent.Unrestricted` (PVE 9, pour `GuestExec`). `PVEVMAdmin` + `PVEAuditor` sur `/` : sur-ensemble simple.
 
-Privilèges minimaux sur `/nodes/<node>` et `/vms` : `Sys.Audit`, `VM.Audit`, `VM.Allocate`, `VM.Config.Disk`, `VM.Config.Network`, `VM.Config.Options`, `VM.Config.HWType`, `VM.PowerMgmt`, `VM.Monitor` (requêtes guest agent). Les rôles intégrés `PVEVMAdmin` + `PVEAuditor` sur `/` constituent un sur-ensemble simple.
+Passé via `PVE_TOKEN_ID` = `root@pam!rv` et `PVE_TOKEN_SECRET`.
 
-Le jeton est passé en `PSCredential` : **UserName** = `root@pam!rv`, **Password** = le secret.
+### 4.4 Pourquoi root
 
-### 4.4 Clé SSH
+`qm create` avec des **chemins de disque absolus** (les overlays) n'est accepté que pour `root@pam`, et la publication FUSE atterrit sous `/run/media`. Exécuter le script en root sur le nœud (unité systemd `User=root`).
 
-`qm create` avec des **chemins de disque absolus** (les overlays) n'est accepté que pour `root@pam` — d'où le SSH root par clé :
+## 5. Installer
 
 ```bash
-# sur la sonde
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C rv-probe
-# copier la clé publique dans /root/.ssh/authorized_keys sur le nœud, puis tester :
-ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes root@pve-node01 pveversion
+mkdir -p /opt/veeam-recovery-verification /var/lib/veeam-recovery-verification/reports
+cd /opt/veeam-recovery-verification
+# copier pve_backup_boot.py, RecoveryVerification.sample.json, deploy/ ici (git clone ou scp)
+chmod +x pve_backup_boot.py deploy/rotate-sample.sh
+./pve_backup_boot.py --init-config              # écrit RecoveryVerification.json - le renseigner (voir Configuration)
+
+cat > /root/.veeam-rv-secrets.json <<'EOF'
+{ "VBR_USER": "svc-rv@vsphere.local", "VBR_PASSWORD": "…", "PVE_TOKEN_ID": "root@pam!rv", "PVE_TOKEN_SECRET": "…" }
+EOF
+chmod 600 /root/.veeam-rv-secrets.json
+
+./pve_backup_boot.py -v SRV-A --secrets-file /root/.veeam-rv-secrets.json --dry-run --debug   # pré-vol CP00-CP04 seul
 ```
 
-Commandes exécutées sur le nœud : `pveversion`, `find <MountRoot>`, `mkdir -p` / `test -w` sur le chemin overlay, `qemu-img create`, `qm create`, `qm start`, `qm stop`, `qm destroy --purge`, `rm -rf <dossier overlay>`.
+Les secrets sont lus depuis `--secrets-file`, puis les variables d'environnement (`VBR_USER`, `VBR_PASSWORD`, `PVE_TOKEN_ID`, `PVE_TOKEN_SECRET`), puis la saisie interactive.
 
-## 5. La machine sonde
+## 6. Planification (systemd)
 
-| Destination | Port | Usage |
-|---|---|---|
-| Serveur VBR | 9419/tcp | Points de restauration, identifiants, Data Integration API, sessions |
-| Nœud Proxmox | 22/tcp | qemu-img / qm via SSH |
-| API Proxmox | 8006/tcp | Nœud, réseau, état des VM, guest agent |
-| Bridge / VLAN isolé | ICMP, ports applicatifs | Ping CP23 et contrôles applicatifs CP30 |
-
-Pour la dernière ligne, la sonde a besoin d'une **seconde NIC sur le bridge / VLAN isolé** (le plus simple : la sonde est elle-même une petite VM Windows sur le nœud de vérification avec `net1` sur `vmbr1[,tag=…]`). Sans cela le script fonctionne ; CP23 et CP30 sont `SKIP`.
-
-## 6. Installer le script
-
-1. Copier `Test-PveBackupBoot.ps1` et `RecoveryVerification.sample.json` dans un dossier de la sonde, par ex. `C:\Tools\RecoveryVerification\`.
-2. `Unblock-File .\Test-PveBackupBoot.ps1` si téléchargé.
-3. Générer et renseigner la configuration : `.\Test-PveBackupBoot.ps1 -InitConfig` puis éditer `RecoveryVerification.json` (ou copier l'exemple). Voir [Configuration](configuration.md).
-4. Simulation — s'authentifie partout et exécute le pré-vol CP00–CP04, ne démarre rien :
-
-   ```powershell
-   .\Test-PveBackupBoot.ps1 -VmNames SRV-A -WhatIf -Verbose
-   ```
-
-## 7. Exécutions non supervisées
-
-Stocker les deux secrets dans un coffre et les passer en identifiants :
-
-```powershell
-$vbr = Get-Secret -Name RV-VBR      # PSCredential : utilisateur / mot de passe VBR
-$pve = Get-Secret -Name RV-PveToken # PSCredential : "root@pam!rv" / secret du jeton
-.\Test-PveBackupBoot.ps1 -VmNames SRV-A,SRV-B -Cleanup -VbrCredential $vbr -PveApiToken $pve
+```bash
+cp deploy/veeam-recovery-verification.service deploy/veeam-recovery-verification.timer /etc/systemd/system/
+# adapter ExecStart (liste de VM ou deploy/rotate-sample.sh + vms.txt), puis :
+systemctl daemon-reload && systemctl enable --now veeam-recovery-verification.timer
+systemctl list-timers veeam-recovery-verification.timer ; journalctl -u veeam-recovery-verification.service
 ```
 
-## 8. TLS
+L'unité déclare `SuccessExitStatus=1 2` pour qu'une vérification en échec ne marque pas l'unité failed (le résultat est dans les rapports, le code de sortie dans le journal). À retirer si vous préférez que systemd signale les échecs.
 
-Tous les appels REST utilisent `-SkipCertificateCheck` (certificats auto-signés habituels sur VBR et Proxmox). Retirer `SkipCertificateCheck = $true` dans `Invoke-Api` et `Connect-Vbr` pour une validation stricte.
+## 7. TLS
+
+Les appels REST ignorent la validation des certificats par défaut (auto-signés VBR / Proxmox). Ajouter `--verify-tls` une fois des certificats de confiance en place.
 
 ## Étape suivante
 
