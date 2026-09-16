@@ -1,0 +1,6 @@
+# GitHub language statistics: the tool is Python; the archived PowerShell implementation and generated examples must not count.
+legacy/** linguist-vendored
+examples/** linguist-generated
+docs/** linguist-documentation
+deploy/*.ps1 linguist-vendored
+*.md linguist-documentation

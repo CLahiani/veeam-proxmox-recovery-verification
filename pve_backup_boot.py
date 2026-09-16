@@ -76,7 +76,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 EXTENSION_DIR_HINT = "/run/media/Veeam.Mount.Disks"
 
 # =====================================================================================
@@ -648,6 +648,23 @@ def parse_nics(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     return nics
 
 
+def poll_ready(pve: "Pve", node: str, sessions: Dict[str, Dict[str, Any]], cfg: Dict[str, Any]) -> None:
+    """One round of polling over booted VMs: record running state and the moment the guest agent reports an IP."""
+    timeout_s = int(cfg["Thresholds"]["GuestAgentTimeoutMinutes"]) * 60
+    for s in sessions.values():
+        if not s.get("Created") or s.get("Done"):
+            continue
+        vm_obj = pve.vm(node, s["VmId"])
+        s["Vm"] = vm_obj
+        if vm_obj and (vm_obj["Status"] or {}).get("status") == "running":
+            ip = pve.guest_ip(node, s["VmId"])
+            if ip:
+                s["Ip"], s["IpAt"], s["Done"] = ip, time.time(), True
+                continue
+        if time.time() - s["CreatedAt"] >= timeout_s:
+            s["Done"] = True
+
+
 def nic_isolated(cfg: Dict[str, Any], nic: Dict[str, Any]) -> bool:
     tag = cfg["Target"].get("IsolatedVlanTag")
     want = int(tag) if tag not in (None, "") else None
@@ -1005,11 +1022,17 @@ def main() -> int:  # noqa: C901 - orchestration
 
                 create_test_vm(cfg, run.run_id, vmid, target, images, hardware_for(cfg, vm), s["OverlayDir"])
                 s["Created"] = True
+                s["CreatedAt"] = time.time()
+                poll_ready(pve, node, sessions, cfg)   # earlier VMs keep booting while the next one is published
             except Exception as e:  # noqa: BLE001
                 run.cp("CP12", vm, L("CP12Start"), "KO", str(e)[:300]); run.skip_remaining(vm, L("D_LaunchFailed"))
 
         # ------------------------------------------------------------------ Step 2
         run.step(L("Step2"))
+        # Wait for every booted VM in round-robin (accurate time-to-IP per VM), then verify them one by one.
+        while any(s["Created"] and not s.get("Done") for s in sessions.values()):
+            time.sleep(poll)
+            poll_ready(pve, node, sessions, cfg)
         for vm, s in sessions.items():
             if not s["Created"]:
                 if args.cleanup and s["MountId"]:
@@ -1018,18 +1041,10 @@ def main() -> int:  # noqa: C901 - orchestration
                     except Exception as e:  # noqa: BLE001
                         logging.warning("unpublish failed: %s", e)
                 continue
-            vmid, ip = s["VmId"], None
+            vmid, ip = s["VmId"], s.get("Ip")
             try:
-                deadline = time.time() + int(cfg["Thresholds"]["GuestAgentTimeoutMinutes"]) * 60
-                vm_obj = None
-                while True:
-                    time.sleep(poll)
-                    vm_obj = pve.vm(node, vmid)
-                    if vm_obj and (vm_obj["Status"] or {}).get("status") == "running":
-                        ip = pve.guest_ip(node, vmid)
-                    if ip or time.time() >= deadline:
-                        break
-                boot_min = round((time.time() - s["Started"]) / 60, 1)
+                vm_obj = s.get("Vm") or pve.vm(node, vmid)
+                boot_min = round(((s.get("IpAt") or time.time()) - s["Started"]) / 60, 1)
                 if not vm_obj:
                     run.cp("CP20", vm, L("CP20"), "KO", L("D_VmNotFound", vmid)); run.skip_remaining(vm, L("D_VmNotFoundShort")); continue
                 running = (vm_obj["Status"] or {}).get("status") == "running"

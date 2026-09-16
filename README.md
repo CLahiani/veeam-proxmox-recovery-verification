@@ -49,6 +49,10 @@ What it does **not** measure: the duration of an Entire VM Restore to Proxmox VE
 
 Exit code: `0` all checkpoints OK · `1` at least one checkpoint failed · `2` blocking pre-flight error.
 
+### Example report
+
+Sample HTML / CSV / JSON output on **fake data** (mixed OK / WARN / KO): [`examples/`](examples/README.md) — [rendered preview](https://htmlpreview.github.io/?https://github.com/CLahiani/veeam-proxmox-recovery-verification/blob/main/examples/en/RecoveryVerification-20260919-050000.html).
+
 ### Documentation
 
 - [Installation & prerequisites](docs/en/installation.md) — VBR credentials record, Proxmox API token, isolated bridge / VLAN, overlay storage, systemd timer
@@ -66,6 +70,7 @@ Exit code: `0` all checkpoints OK · `1` at least one checkpoint failed · `2` b
 | `requirements.txt` | Optional modules for network checks run from the node (`dnspython`, `ldap3`, `pymssql`) |
 | `deploy/` | systemd service + timer, daily rotation helper |
 | `docs/en/`, `docs/fr/` | Documentation in English and French |
+| `examples/` | Example reports (HTML / CSV / JSON) generated on fake data |
 | `legacy/` | v1 PowerShell implementation (Windows probe + SSH), kept for reference, not maintained |
 
 ### Disclaimer
@@ -114,6 +119,10 @@ Ce que le script ne mesure **pas** : la durée d'un Entire VM Restore vers Proxm
 
 Code de sortie : `0` tous les points de contrôle OK · `1` au moins un point de contrôle en échec · `2` erreur bloquante en pré-vol.
 
+### Exemple de rapport
+
+Sortie HTML / CSV / JSON sur **données fictives** (mélange OK / WARN / KO) : [`examples/`](examples/README.md) — [aperçu rendu](https://htmlpreview.github.io/?https://github.com/CLahiani/veeam-proxmox-recovery-verification/blob/main/examples/fr/RecoveryVerification-20260919-050000.html).
+
 ### Documentation
 
 - [Installation et prérequis](docs/fr/installation.md) — identifiants VBR, jeton API Proxmox, bridge / VLAN isolé, stockage overlay, timer systemd
@@ -131,6 +140,7 @@ Code de sortie : `0` tous les points de contrôle OK · `1` au moins un point de
 | `requirements.txt` | Modules optionnels pour les contrôles réseau depuis le nœud (`dnspython`, `ldap3`, `pymssql`) |
 | `deploy/` | Service + timer systemd, script de rotation quotidienne |
 | `docs/en/`, `docs/fr/` | Documentation en anglais et en français |
+| `examples/` | Exemples de rapports (HTML / CSV / JSON) générés sur données fictives |
 | `legacy/` | Implémentation PowerShell v1 (sonde Windows + SSH), conservée pour référence, non maintenue |
 
 ### Avertissement

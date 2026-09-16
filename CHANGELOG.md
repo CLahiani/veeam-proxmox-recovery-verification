@@ -2,6 +2,12 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). / Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [2.0.1] - 2026-09-16
+
+### Fixed / Corrigé
+- **EN** RTO measurement: booted VMs are now polled round-robin (`poll_ready`) during and after publishing, so each VM's time-to-IP is its own, not inflated by the publishing of later VMs. `examples/` added (reports on fake data); `.gitattributes` for GitHub language statistics.
+- **FR** Mesure du RTO : les VM démarrées sont désormais interrogées en tourniquet (`poll_ready`) pendant et après la publication, le délai jusqu'à l'IP de chaque VM est le sien et non gonflé par la publication des VM suivantes. Ajout de `examples/` (rapports sur données fictives) ; `.gitattributes` pour les statistiques de langage GitHub.
+
 ## [2.0.0] - 2026-09-16
 
 ### Changed / Modifié
