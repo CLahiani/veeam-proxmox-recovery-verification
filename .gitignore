@@ -1,0 +1,11 @@
+# Real configuration (contains server names) — keep only the sample in git
+RecoveryVerification.json
+
+# Run outputs
+Reports/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
