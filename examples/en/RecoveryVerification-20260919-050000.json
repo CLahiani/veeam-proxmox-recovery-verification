@@ -1,0 +1,651 @@
+{
+  "RunId": "20260919-050000",
+  "Date": "2026-09-19T05:32:57",
+  "Language": "en",
+  "Platform": "ProxmoxVE",
+  "Method": "DataIntegrationApi+QemuOverlay",
+  "Version": "2.0.0",
+  "Target": {
+    "IsolatedBridge": "vmbr1",
+    "IsolatedVlanTag": 4000,
+    "OverlayStoragePath": "/var/lib/vz/images/rv-overlays",
+    "VmNamePrefix": "rv-",
+    "VmIdRangeStart": 9900
+  },
+  "Thresholds": {
+    "MaxRestorePointAgeHours": 30,
+    "MaxBootMinutes": 10,
+    "GuestAgentTimeoutMinutes": 10,
+    "PublishTimeoutMinutes": 15,
+    "PollIntervalSeconds": 15
+  },
+  "Summary": [
+    {
+      "VM": "SRV-AD01",
+      "RestorePointAgeH": 6.8,
+      "BootMinutes": 9.0,
+      "IP": "10.99.0.21",
+      "KO": 0,
+      "WARN": 0,
+      "Result": "OK"
+    },
+    {
+      "VM": "SRV-FILE01",
+      "RestorePointAgeH": 6.4,
+      "BootMinutes": 4.5,
+      "IP": "10.99.0.22",
+      "KO": 0,
+      "WARN": 0,
+      "Result": "OK"
+    },
+    {
+      "VM": "SRV-WEB01",
+      "RestorePointAgeH": 31.0,
+      "BootMinutes": 4.5,
+      "IP": "10.99.0.23",
+      "KO": 2,
+      "WARN": 0,
+      "Result": "KO"
+    },
+    {
+      "VM": "SRV-SQL01",
+      "RestorePointAgeH": 6.1,
+      "BootMinutes": 17.8,
+      "IP": "",
+      "KO": 1,
+      "WARN": 2,
+      "Result": "KO"
+    },
+    {
+      "VM": "SRV-OLD01",
+      "RestorePointAgeH": null,
+      "BootMinutes": null,
+      "IP": "",
+      "KO": 1,
+      "WARN": 0,
+      "Result": "KO"
+    }
+  ],
+  "Checkpoints": [
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:04",
+      "CP": "CP00",
+      "VM": "-",
+      "Label": "Authentication VBR / Proxmox API / local tools (qm, qemu-img)",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "VBR 1.3-rev2, pve-manager/9.0.6/8a3e4d2c (running kernel: 6.14.8-2-pve)"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:06",
+      "CP": "CP01",
+      "VM": "-",
+      "Label": "Node, isolated bridge, overlay storage and VBR Linux credentials present",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "pve-node01 / vmbr1 / /var/lib/vz/images/rv-overlays / cred root"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:08",
+      "CP": "CP02",
+      "VM": "-",
+      "Label": "Isolated bridge / VLAN is non-routed",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "bridge vmbr1 tag 4000: no IP, no uplink"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:10",
+      "CP": "CP03",
+      "VM": "-",
+      "Label": "No foreign VM on the isolated bridge / VLAN",
+      "Status": "OK",
+      "Value": null,
+      "Detail": ""
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:12",
+      "CP": "CP04",
+      "VM": "-",
+      "Label": "No leftover test VM or stale disk publishing",
+      "Status": "OK",
+      "Value": null,
+      "Detail": ""
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:16",
+      "CP": "CP10",
+      "VM": "SRV-AD01",
+      "Label": "Restore point found",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "created on 2026-09-18T22:14:07Z"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:00:18",
+      "CP": "CP11",
+      "VM": "SRV-AD01",
+      "Label": "Restore point age <= 30 h",
+      "Status": "OK",
+      "Value": 6.8,
+      "Detail": "6.8 h"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:04:19",
+      "CP": "CP12",
+      "VM": "SRV-AD01",
+      "Label": "Disk publishing completed",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "2 disk(s): disk-0.raw, disk-1.raw"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:04:50",
+      "CP": "CP10",
+      "VM": "SRV-FILE01",
+      "Label": "Restore point found",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "created on 2026-09-18T22:41:52Z"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:04:52",
+      "CP": "CP11",
+      "VM": "SRV-FILE01",
+      "Label": "Restore point age <= 30 h",
+      "Status": "OK",
+      "Value": 6.4,
+      "Detail": "6.4 h"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:08:53",
+      "CP": "CP12",
+      "VM": "SRV-FILE01",
+      "Label": "Disk publishing completed",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "1 disk(s): disk-0.raw"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:09:26",
+      "CP": "CP10",
+      "VM": "SRV-WEB01",
+      "Label": "Restore point found",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "created on 2026-09-17T22:10:33Z"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:09:28",
+      "CP": "CP11",
+      "VM": "SRV-WEB01",
+      "Label": "Restore point age <= 30 h",
+      "Status": "KO",
+      "Value": 31.0,
+      "Detail": "31.0 h - RPO missed, check the backup job"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:13:29",
+      "CP": "CP12",
+      "VM": "SRV-WEB01",
+      "Label": "Disk publishing completed",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "1 disk(s): disk-0.raw"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:14:00",
+      "CP": "CP10",
+      "VM": "SRV-SQL01",
+      "Label": "Restore point found",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "created on 2026-09-18T23:05:18Z"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:14:02",
+      "CP": "CP11",
+      "VM": "SRV-SQL01",
+      "Label": "Restore point age <= 30 h",
+      "Status": "OK",
+      "Value": 6.1,
+      "Detail": "6.1 h"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:03",
+      "CP": "CP12",
+      "VM": "SRV-SQL01",
+      "Label": "Disk publishing completed",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "2 disk(s): disk-0.raw, disk-1.raw"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:34",
+      "CP": "CP10",
+      "VM": "SRV-OLD01",
+      "Label": "Restore point found",
+      "Status": "KO",
+      "Value": null,
+      "Detail": "no Proxmox VE restore point for this name"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:36",
+      "CP": "CP13",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:38",
+      "CP": "CP20",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:40",
+      "CP": "CP21",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:42",
+      "CP": "CP22",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:44",
+      "CP": "CP23",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:46",
+      "CP": "CP30",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:18:48",
+      "CP": "CP40",
+      "VM": "SRV-OLD01",
+      "Label": "Post-boot check",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "no restore point"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:47",
+      "CP": "CP13",
+      "VM": "SRV-AD01",
+      "Label": "Time to boot <= 10 min",
+      "Status": "OK",
+      "Value": 9.0,
+      "Detail": "9.0 min"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:49",
+      "CP": "CP20",
+      "VM": "SRV-AD01",
+      "Label": "Test VM running",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "status = running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:51",
+      "CP": "CP21",
+      "VM": "SRV-AD01",
+      "Label": "NICs only on the isolated bridge / VLAN",
+      "Status": "OK",
+      "Value": null,
+      "Detail": ""
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:53",
+      "CP": "CP22",
+      "VM": "SRV-AD01",
+      "Label": "IP address reported (QEMU guest agent)",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "10.99.0.21"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:55",
+      "CP": "CP23",
+      "VM": "SRV-AD01",
+      "Label": "Ping from this host",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "--ping-check not enabled"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:57",
+      "CP": "CP30",
+      "VM": "SRV-AD01",
+      "Label": "Application: systemd up",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:28:59",
+      "CP": "CP30",
+      "VM": "SRV-AD01",
+      "Label": "Application: AD DS, DNS, KDC running",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: 0"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:01",
+      "CP": "CP30",
+      "VM": "SRV-AD01",
+      "Label": "Application: DNS zone answers",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: 3"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:48",
+      "CP": "CP40",
+      "VM": "SRV-AD01",
+      "Label": "Test VM destroyed, overlays removed, disks unpublished",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "VM 9900, publish m-rp-srv-ad01"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:50",
+      "CP": "CP13",
+      "VM": "SRV-FILE01",
+      "Label": "Time to boot <= 10 min",
+      "Status": "OK",
+      "Value": 4.5,
+      "Detail": "4.5 min"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:52",
+      "CP": "CP20",
+      "VM": "SRV-FILE01",
+      "Label": "Test VM running",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "status = running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:54",
+      "CP": "CP21",
+      "VM": "SRV-FILE01",
+      "Label": "NICs only on the isolated bridge / VLAN",
+      "Status": "OK",
+      "Value": null,
+      "Detail": ""
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:56",
+      "CP": "CP22",
+      "VM": "SRV-FILE01",
+      "Label": "IP address reported (QEMU guest agent)",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "10.99.0.22"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:29:58",
+      "CP": "CP23",
+      "VM": "SRV-FILE01",
+      "Label": "Ping from this host",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "--ping-check not enabled"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:00",
+      "CP": "CP30",
+      "VM": "SRV-FILE01",
+      "Label": "Application: systemd up",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:02",
+      "CP": "CP30",
+      "VM": "SRV-FILE01",
+      "Label": "Application: SMB server",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: Running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:49",
+      "CP": "CP40",
+      "VM": "SRV-FILE01",
+      "Label": "Test VM destroyed, overlays removed, disks unpublished",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "VM 9901, publish m-rp-srv-file01"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:51",
+      "CP": "CP13",
+      "VM": "SRV-WEB01",
+      "Label": "Time to boot <= 10 min",
+      "Status": "OK",
+      "Value": 4.5,
+      "Detail": "4.5 min"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:53",
+      "CP": "CP20",
+      "VM": "SRV-WEB01",
+      "Label": "Test VM running",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "status = running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:55",
+      "CP": "CP21",
+      "VM": "SRV-WEB01",
+      "Label": "NICs only on the isolated bridge / VLAN",
+      "Status": "OK",
+      "Value": null,
+      "Detail": ""
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:57",
+      "CP": "CP22",
+      "VM": "SRV-WEB01",
+      "Label": "IP address reported (QEMU guest agent)",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "10.99.0.23"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:30:59",
+      "CP": "CP23",
+      "VM": "SRV-WEB01",
+      "Label": "Ping from this host",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "--ping-check not enabled"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:31:01",
+      "CP": "CP30",
+      "VM": "SRV-WEB01",
+      "Label": "Application: systemd up",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:31:03",
+      "CP": "CP30",
+      "VM": "SRV-WEB01",
+      "Label": "Application: Health endpoint",
+      "Status": "KO",
+      "Value": null,
+      "Detail": "exit 0: 503"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:31:50",
+      "CP": "CP40",
+      "VM": "SRV-WEB01",
+      "Label": "Test VM destroyed, overlays removed, disks unpublished",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "VM 9902, publish m-rp-srv-web01"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:31:54",
+      "CP": "CP13",
+      "VM": "SRV-SQL01",
+      "Label": "Time to boot <= 10 min",
+      "Status": "WARN",
+      "Value": 17.8,
+      "Detail": "17.8 min - RTO target exceeded"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:31:56",
+      "CP": "CP20",
+      "VM": "SRV-SQL01",
+      "Label": "Test VM running",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "status = running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:31:58",
+      "CP": "CP21",
+      "VM": "SRV-SQL01",
+      "Label": "NICs only on the isolated bridge / VLAN",
+      "Status": "OK",
+      "Value": null,
+      "Detail": ""
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:32:00",
+      "CP": "CP22",
+      "VM": "SRV-SQL01",
+      "Label": "IP address reported (QEMU guest agent)",
+      "Status": "WARN",
+      "Value": null,
+      "Detail": "no IP - guest agent missing / not started, or OS not booted"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:32:02",
+      "CP": "CP23",
+      "VM": "SRV-SQL01",
+      "Label": "Ping from this host",
+      "Status": "SKIP",
+      "Value": null,
+      "Detail": "--ping-check not enabled"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:32:04",
+      "CP": "CP30",
+      "VM": "SRV-SQL01",
+      "Label": "Application: systemd up",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "exit 0: running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:32:06",
+      "CP": "CP30",
+      "VM": "SRV-SQL01",
+      "Label": "Application: SQL Server service",
+      "Status": "KO",
+      "Value": null,
+      "Detail": "exit 0: running"
+    },
+    {
+      "RunId": "20260919-050000",
+      "Time": "2026-09-19T05:32:53",
+      "CP": "CP40",
+      "VM": "SRV-SQL01",
+      "Label": "Test VM destroyed, overlays removed, disks unpublished",
+      "Status": "OK",
+      "Value": null,
+      "Detail": "VM 9903, publish m-rp-srv-sql01"
+    }
+  ]
+}

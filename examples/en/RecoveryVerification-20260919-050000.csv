@@ -1,0 +1,59 @@
+RunId;Time;CP;VM;Label;Status;Value;Detail
+20260919-050000;2026-09-19T05:00:04;CP00;-;Authentication VBR / Proxmox API / local tools (qm, qemu-img);OK;;VBR 1.3-rev2, pve-manager/9.0.6/8a3e4d2c (running kernel: 6.14.8-2-pve)
+20260919-050000;2026-09-19T05:00:06;CP01;-;Node, isolated bridge, overlay storage and VBR Linux credentials present;OK;;pve-node01 / vmbr1 / /var/lib/vz/images/rv-overlays / cred root
+20260919-050000;2026-09-19T05:00:08;CP02;-;Isolated bridge / VLAN is non-routed;OK;;bridge vmbr1 tag 4000: no IP, no uplink
+20260919-050000;2026-09-19T05:00:10;CP03;-;No foreign VM on the isolated bridge / VLAN;OK;;
+20260919-050000;2026-09-19T05:00:12;CP04;-;No leftover test VM or stale disk publishing;OK;;
+20260919-050000;2026-09-19T05:00:16;CP10;SRV-AD01;Restore point found;OK;;created on 2026-09-18T22:14:07Z
+20260919-050000;2026-09-19T05:00:18;CP11;SRV-AD01;Restore point age <= 30 h;OK;6.8;6.8 h
+20260919-050000;2026-09-19T05:04:19;CP12;SRV-AD01;Disk publishing completed;OK;;2 disk(s): disk-0.raw, disk-1.raw
+20260919-050000;2026-09-19T05:04:50;CP10;SRV-FILE01;Restore point found;OK;;created on 2026-09-18T22:41:52Z
+20260919-050000;2026-09-19T05:04:52;CP11;SRV-FILE01;Restore point age <= 30 h;OK;6.4;6.4 h
+20260919-050000;2026-09-19T05:08:53;CP12;SRV-FILE01;Disk publishing completed;OK;;1 disk(s): disk-0.raw
+20260919-050000;2026-09-19T05:09:26;CP10;SRV-WEB01;Restore point found;OK;;created on 2026-09-17T22:10:33Z
+20260919-050000;2026-09-19T05:09:28;CP11;SRV-WEB01;Restore point age <= 30 h;KO;31.0;31.0 h - RPO missed, check the backup job
+20260919-050000;2026-09-19T05:13:29;CP12;SRV-WEB01;Disk publishing completed;OK;;1 disk(s): disk-0.raw
+20260919-050000;2026-09-19T05:14:00;CP10;SRV-SQL01;Restore point found;OK;;created on 2026-09-18T23:05:18Z
+20260919-050000;2026-09-19T05:14:02;CP11;SRV-SQL01;Restore point age <= 30 h;OK;6.1;6.1 h
+20260919-050000;2026-09-19T05:18:03;CP12;SRV-SQL01;Disk publishing completed;OK;;2 disk(s): disk-0.raw, disk-1.raw
+20260919-050000;2026-09-19T05:18:34;CP10;SRV-OLD01;Restore point found;KO;;no Proxmox VE restore point for this name
+20260919-050000;2026-09-19T05:18:36;CP13;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:18:38;CP20;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:18:40;CP21;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:18:42;CP22;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:18:44;CP23;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:18:46;CP30;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:18:48;CP40;SRV-OLD01;Post-boot check;SKIP;;no restore point
+20260919-050000;2026-09-19T05:28:47;CP13;SRV-AD01;Time to boot <= 10 min;OK;9.0;9.0 min
+20260919-050000;2026-09-19T05:28:49;CP20;SRV-AD01;Test VM running;OK;;status = running
+20260919-050000;2026-09-19T05:28:51;CP21;SRV-AD01;NICs only on the isolated bridge / VLAN;OK;;
+20260919-050000;2026-09-19T05:28:53;CP22;SRV-AD01;IP address reported (QEMU guest agent);OK;;10.99.0.21
+20260919-050000;2026-09-19T05:28:55;CP23;SRV-AD01;Ping from this host;SKIP;;--ping-check not enabled
+20260919-050000;2026-09-19T05:28:57;CP30;SRV-AD01;Application: systemd up;OK;;exit 0: running
+20260919-050000;2026-09-19T05:28:59;CP30;SRV-AD01;Application: AD DS, DNS, KDC running;OK;;exit 0: 0
+20260919-050000;2026-09-19T05:29:01;CP30;SRV-AD01;Application: DNS zone answers;OK;;exit 0: 3
+20260919-050000;2026-09-19T05:29:48;CP40;SRV-AD01;Test VM destroyed, overlays removed, disks unpublished;OK;;VM 9900, publish m-rp-srv-ad01
+20260919-050000;2026-09-19T05:29:50;CP13;SRV-FILE01;Time to boot <= 10 min;OK;4.5;4.5 min
+20260919-050000;2026-09-19T05:29:52;CP20;SRV-FILE01;Test VM running;OK;;status = running
+20260919-050000;2026-09-19T05:29:54;CP21;SRV-FILE01;NICs only on the isolated bridge / VLAN;OK;;
+20260919-050000;2026-09-19T05:29:56;CP22;SRV-FILE01;IP address reported (QEMU guest agent);OK;;10.99.0.22
+20260919-050000;2026-09-19T05:29:58;CP23;SRV-FILE01;Ping from this host;SKIP;;--ping-check not enabled
+20260919-050000;2026-09-19T05:30:00;CP30;SRV-FILE01;Application: systemd up;OK;;exit 0: running
+20260919-050000;2026-09-19T05:30:02;CP30;SRV-FILE01;Application: SMB server;OK;;exit 0: Running
+20260919-050000;2026-09-19T05:30:49;CP40;SRV-FILE01;Test VM destroyed, overlays removed, disks unpublished;OK;;VM 9901, publish m-rp-srv-file01
+20260919-050000;2026-09-19T05:30:51;CP13;SRV-WEB01;Time to boot <= 10 min;OK;4.5;4.5 min
+20260919-050000;2026-09-19T05:30:53;CP20;SRV-WEB01;Test VM running;OK;;status = running
+20260919-050000;2026-09-19T05:30:55;CP21;SRV-WEB01;NICs only on the isolated bridge / VLAN;OK;;
+20260919-050000;2026-09-19T05:30:57;CP22;SRV-WEB01;IP address reported (QEMU guest agent);OK;;10.99.0.23
+20260919-050000;2026-09-19T05:30:59;CP23;SRV-WEB01;Ping from this host;SKIP;;--ping-check not enabled
+20260919-050000;2026-09-19T05:31:01;CP30;SRV-WEB01;Application: systemd up;OK;;exit 0: running
+20260919-050000;2026-09-19T05:31:03;CP30;SRV-WEB01;Application: Health endpoint;KO;;exit 0: 503
+20260919-050000;2026-09-19T05:31:50;CP40;SRV-WEB01;Test VM destroyed, overlays removed, disks unpublished;OK;;VM 9902, publish m-rp-srv-web01
+20260919-050000;2026-09-19T05:31:54;CP13;SRV-SQL01;Time to boot <= 10 min;WARN;17.8;17.8 min - RTO target exceeded
+20260919-050000;2026-09-19T05:31:56;CP20;SRV-SQL01;Test VM running;OK;;status = running
+20260919-050000;2026-09-19T05:31:58;CP21;SRV-SQL01;NICs only on the isolated bridge / VLAN;OK;;
+20260919-050000;2026-09-19T05:32:00;CP22;SRV-SQL01;IP address reported (QEMU guest agent);WARN;;no IP - guest agent missing / not started, or OS not booted
+20260919-050000;2026-09-19T05:32:02;CP23;SRV-SQL01;Ping from this host;SKIP;;--ping-check not enabled
+20260919-050000;2026-09-19T05:32:04;CP30;SRV-SQL01;Application: systemd up;OK;;exit 0: running
+20260919-050000;2026-09-19T05:32:06;CP30;SRV-SQL01;Application: SQL Server service;KO;;exit 0: running
+20260919-050000;2026-09-19T05:32:53;CP40;SRV-SQL01;Test VM destroyed, overlays removed, disks unpublished;OK;;VM 9903, publish m-rp-srv-sql01
