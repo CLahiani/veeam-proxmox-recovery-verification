@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Recovery Verification - Proxmox VE (démarrage depuis la sauvegarde) - 20260919-050000</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#222;margin:24px;background:#fafafa}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:16px;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}
+.banner{color:#fff;padding:10px 14px;border-radius:4px;font-weight:600;margin:12px 0;background:#c62828}
+.kpi{display:inline-block;background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:8px 14px;margin:0 8px 8px 0}.kpi b{font-size:18px;display:block}
+table{border-collapse:collapse;width:100%;background:#fff}th,td{border:1px solid #e0e0e0;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#f0f0f0}td.ok{background:#e8f5e9;color:#2e7d32;font-weight:600}td.ko{background:#ffebee;color:#c62828;font-weight:600}
+td.warn{background:#fff3e0;color:#ef6c00;font-weight:600}td.skip{color:#888}small{color:#666}
+</style></head><body>
+<h1>Recovery Verification - Proxmox VE (démarrage depuis la sauvegarde)</h1>
+<small>Exécution 20260919-050000 &middot; 2026-09-19 05:32 &middot; Nœud pve-node01 &middot; Réseau isolé vmbr1 / VLAN 4000 &middot; VBR vbr01.lab.example</small>
+<div class="banner">ÉCHEC - 4 point(s) de contrôle KO</div>
+<div class="kpi"><b>5</b>VM vérifiées</div><div class="kpi"><b>41</b>contrôles OK</div>
+<div class="kpi"><b>2</b>avertissements</div><div class="kpi"><b>4</b>échecs</div>
+<div class="kpi"><b>30 h</b>RPO cible</div><div class="kpi"><b>10 min</b>RTO cible (démarrage)</div>
+<h2>Synthèse par VM</h2>
+<table><tr><th>VM</th><th>Âge du point de restauration (h)</th><th>Délai de démarrage (min)</th><th>IP</th><th>KO</th><th>WARN</th><th>Résultat</th></tr>
+<tr><td>SRV-AD01</td><td>6.8</td><td>9.0</td><td>10.99.0.21</td><td>0</td><td>0</td><td class='ok'>OK</td></tr>
+<tr><td>SRV-FILE01</td><td>6.4</td><td>4.5</td><td>10.99.0.22</td><td>0</td><td>0</td><td class='ok'>OK</td></tr>
+<tr><td>SRV-WEB01</td><td>31.0</td><td>4.5</td><td>10.99.0.23</td><td>2</td><td>0</td><td class='ko'>KO</td></tr>
+<tr><td>SRV-SQL01</td><td>6.1</td><td>17.8</td><td></td><td>1</td><td>2</td><td class='ko'>KO</td></tr>
+<tr><td>SRV-OLD01</td><td></td><td></td><td></td><td>1</td><td>0</td><td class='ko'>KO</td></tr></table>
+<h2>Détail des points de contrôle</h2>
+<table><tr><th>Heure</th><th>CP</th><th>VM</th><th>Contrôle</th><th>Statut</th><th>Détail</th></tr>
+<tr><td>2026-09-19T05:00:04</td><td>CP00</td><td>-</td><td>Authentification VBR / API Proxmox / outils locaux (qm, qemu-img)</td><td class='ok'>OK</td><td>VBR 1.3-rev2, pve-manager/9.0.6/8a3e4d2c (running kernel: 6.14.8-2-pve)</td></tr>
+<tr><td>2026-09-19T05:00:06</td><td>CP01</td><td>-</td><td>Nœud, bridge isolé, stockage overlay et identifiants Linux VBR présents</td><td class='ok'>OK</td><td>pve-node01 / vmbr1 / /var/lib/vz/images/rv-overlays / cred root</td></tr>
+<tr><td>2026-09-19T05:00:08</td><td>CP02</td><td>-</td><td>Bridge / VLAN isolé non routé</td><td class='ok'>OK</td><td>bridge vmbr1 tag 4000 : aucune IP, aucun uplink</td></tr>
+<tr><td>2026-09-19T05:00:10</td><td>CP03</td><td>-</td><td>Aucune VM hors périmètre sur le bridge / VLAN isolé</td><td class='ok'>OK</td><td></td></tr>
+<tr><td>2026-09-19T05:00:12</td><td>CP04</td><td>-</td><td>Aucune VM de test ni publication de disques résiduelle</td><td class='ok'>OK</td><td></td></tr>
+<tr><td>2026-09-19T05:00:16</td><td>CP10</td><td>SRV-AD01</td><td>Point de restauration trouvé</td><td class='ok'>OK</td><td>créé le 2026-09-18T22:14:07Z</td></tr>
+<tr><td>2026-09-19T05:00:18</td><td>CP11</td><td>SRV-AD01</td><td>Âge du point de restauration &lt;= 30 h</td><td class='ok'>OK</td><td>6.8 h</td></tr>
+<tr><td>2026-09-19T05:04:19</td><td>CP12</td><td>SRV-AD01</td><td>Publication des disques terminée</td><td class='ok'>OK</td><td>2 disque(s) : disk-0.raw, disk-1.raw</td></tr>
+<tr><td>2026-09-19T05:04:50</td><td>CP10</td><td>SRV-FILE01</td><td>Point de restauration trouvé</td><td class='ok'>OK</td><td>créé le 2026-09-18T22:41:52Z</td></tr>
+<tr><td>2026-09-19T05:04:52</td><td>CP11</td><td>SRV-FILE01</td><td>Âge du point de restauration &lt;= 30 h</td><td class='ok'>OK</td><td>6.4 h</td></tr>
+<tr><td>2026-09-19T05:08:53</td><td>CP12</td><td>SRV-FILE01</td><td>Publication des disques terminée</td><td class='ok'>OK</td><td>1 disque(s) : disk-0.raw</td></tr>
+<tr><td>2026-09-19T05:09:26</td><td>CP10</td><td>SRV-WEB01</td><td>Point de restauration trouvé</td><td class='ok'>OK</td><td>créé le 2026-09-17T22:10:33Z</td></tr>
+<tr><td>2026-09-19T05:09:28</td><td>CP11</td><td>SRV-WEB01</td><td>Âge du point de restauration &lt;= 30 h</td><td class='ko'>KO</td><td>31.0 h - RPO non tenu, vérifier le job de sauvegarde</td></tr>
+<tr><td>2026-09-19T05:13:29</td><td>CP12</td><td>SRV-WEB01</td><td>Publication des disques terminée</td><td class='ok'>OK</td><td>1 disque(s) : disk-0.raw</td></tr>
+<tr><td>2026-09-19T05:14:00</td><td>CP10</td><td>SRV-SQL01</td><td>Point de restauration trouvé</td><td class='ok'>OK</td><td>créé le 2026-09-18T23:05:18Z</td></tr>
+<tr><td>2026-09-19T05:14:02</td><td>CP11</td><td>SRV-SQL01</td><td>Âge du point de restauration &lt;= 30 h</td><td class='ok'>OK</td><td>6.1 h</td></tr>
+<tr><td>2026-09-19T05:18:03</td><td>CP12</td><td>SRV-SQL01</td><td>Publication des disques terminée</td><td class='ok'>OK</td><td>2 disque(s) : disk-0.raw, disk-1.raw</td></tr>
+<tr><td>2026-09-19T05:18:34</td><td>CP10</td><td>SRV-OLD01</td><td>Point de restauration trouvé</td><td class='ko'>KO</td><td>aucun point de restauration Proxmox VE pour ce nom</td></tr>
+<tr><td>2026-09-19T05:18:36</td><td>CP13</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:18:38</td><td>CP20</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:18:40</td><td>CP21</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:18:42</td><td>CP22</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:18:44</td><td>CP23</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:18:46</td><td>CP30</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:18:48</td><td>CP40</td><td>SRV-OLD01</td><td>Contrôle post-démarrage</td><td class='skip'>SKIP</td><td>pas de point de restauration</td></tr>
+<tr><td>2026-09-19T05:28:47</td><td>CP13</td><td>SRV-AD01</td><td>Délai de démarrage &lt;= 10 min</td><td class='ok'>OK</td><td>9.0 min</td></tr>
+<tr><td>2026-09-19T05:28:49</td><td>CP20</td><td>SRV-AD01</td><td>VM de test démarrée</td><td class='ok'>OK</td><td>statut = running</td></tr>
+<tr><td>2026-09-19T05:28:51</td><td>CP21</td><td>SRV-AD01</td><td>Cartes réseau sur le bridge / VLAN isolé uniquement</td><td class='ok'>OK</td><td></td></tr>
+<tr><td>2026-09-19T05:28:53</td><td>CP22</td><td>SRV-AD01</td><td>Adresse IP remontée (QEMU guest agent)</td><td class='ok'>OK</td><td>10.99.0.21</td></tr>
+<tr><td>2026-09-19T05:28:55</td><td>CP23</td><td>SRV-AD01</td><td>Ping depuis cet hôte</td><td class='skip'>SKIP</td><td>option --ping-check non activée</td></tr>
+<tr><td>2026-09-19T05:28:57</td><td>CP30</td><td>SRV-AD01</td><td>Applicatif : systemd up</td><td class='ok'>OK</td><td>exit 0: running</td></tr>
+<tr><td>2026-09-19T05:28:59</td><td>CP30</td><td>SRV-AD01</td><td>Applicatif : AD DS, DNS, KDC running</td><td class='ok'>OK</td><td>exit 0: 0</td></tr>
+<tr><td>2026-09-19T05:29:01</td><td>CP30</td><td>SRV-AD01</td><td>Applicatif : DNS zone answers</td><td class='ok'>OK</td><td>exit 0: 3</td></tr>
+<tr><td>2026-09-19T05:29:48</td><td>CP40</td><td>SRV-AD01</td><td>VM de test détruite, overlays supprimés, disques dépubliés</td><td class='ok'>OK</td><td>VM 9900, publish m-rp-srv-ad01</td></tr>
+<tr><td>2026-09-19T05:29:50</td><td>CP13</td><td>SRV-FILE01</td><td>Délai de démarrage &lt;= 10 min</td><td class='ok'>OK</td><td>4.5 min</td></tr>
+<tr><td>2026-09-19T05:29:52</td><td>CP20</td><td>SRV-FILE01</td><td>VM de test démarrée</td><td class='ok'>OK</td><td>statut = running</td></tr>
+<tr><td>2026-09-19T05:29:54</td><td>CP21</td><td>SRV-FILE01</td><td>Cartes réseau sur le bridge / VLAN isolé uniquement</td><td class='ok'>OK</td><td></td></tr>
+<tr><td>2026-09-19T05:29:56</td><td>CP22</td><td>SRV-FILE01</td><td>Adresse IP remontée (QEMU guest agent)</td><td class='ok'>OK</td><td>10.99.0.22</td></tr>
+<tr><td>2026-09-19T05:29:58</td><td>CP23</td><td>SRV-FILE01</td><td>Ping depuis cet hôte</td><td class='skip'>SKIP</td><td>option --ping-check non activée</td></tr>
+<tr><td>2026-09-19T05:30:00</td><td>CP30</td><td>SRV-FILE01</td><td>Applicatif : systemd up</td><td class='ok'>OK</td><td>exit 0: running</td></tr>
+<tr><td>2026-09-19T05:30:02</td><td>CP30</td><td>SRV-FILE01</td><td>Applicatif : SMB server</td><td class='ok'>OK</td><td>exit 0: Running</td></tr>
+<tr><td>2026-09-19T05:30:49</td><td>CP40</td><td>SRV-FILE01</td><td>VM de test détruite, overlays supprimés, disques dépubliés</td><td class='ok'>OK</td><td>VM 9901, publish m-rp-srv-file01</td></tr>
+<tr><td>2026-09-19T05:30:51</td><td>CP13</td><td>SRV-WEB01</td><td>Délai de démarrage &lt;= 10 min</td><td class='ok'>OK</td><td>4.5 min</td></tr>
+<tr><td>2026-09-19T05:30:53</td><td>CP20</td><td>SRV-WEB01</td><td>VM de test démarrée</td><td class='ok'>OK</td><td>statut = running</td></tr>
+<tr><td>2026-09-19T05:30:55</td><td>CP21</td><td>SRV-WEB01</td><td>Cartes réseau sur le bridge / VLAN isolé uniquement</td><td class='ok'>OK</td><td></td></tr>
+<tr><td>2026-09-19T05:30:57</td><td>CP22</td><td>SRV-WEB01</td><td>Adresse IP remontée (QEMU guest agent)</td><td class='ok'>OK</td><td>10.99.0.23</td></tr>
+<tr><td>2026-09-19T05:30:59</td><td>CP23</td><td>SRV-WEB01</td><td>Ping depuis cet hôte</td><td class='skip'>SKIP</td><td>option --ping-check non activée</td></tr>
+<tr><td>2026-09-19T05:31:01</td><td>CP30</td><td>SRV-WEB01</td><td>Applicatif : systemd up</td><td class='ok'>OK</td><td>exit 0: running</td></tr>
+<tr><td>2026-09-19T05:31:03</td><td>CP30</td><td>SRV-WEB01</td><td>Applicatif : Health endpoint</td><td class='ko'>KO</td><td>exit 0: 503</td></tr>
+<tr><td>2026-09-19T05:31:50</td><td>CP40</td><td>SRV-WEB01</td><td>VM de test détruite, overlays supprimés, disques dépubliés</td><td class='ok'>OK</td><td>VM 9902, publish m-rp-srv-web01</td></tr>
+<tr><td>2026-09-19T05:31:54</td><td>CP13</td><td>SRV-SQL01</td><td>Délai de démarrage &lt;= 10 min</td><td class='warn'>WARN</td><td>17.8 min - RTO cible dépassé</td></tr>
+<tr><td>2026-09-19T05:31:56</td><td>CP20</td><td>SRV-SQL01</td><td>VM de test démarrée</td><td class='ok'>OK</td><td>statut = running</td></tr>
+<tr><td>2026-09-19T05:31:58</td><td>CP21</td><td>SRV-SQL01</td><td>Cartes réseau sur le bridge / VLAN isolé uniquement</td><td class='ok'>OK</td><td></td></tr>
+<tr><td>2026-09-19T05:32:00</td><td>CP22</td><td>SRV-SQL01</td><td>Adresse IP remontée (QEMU guest agent)</td><td class='warn'>WARN</td><td>aucune IP - guest agent absent / non démarré, ou OS non démarré</td></tr>
+<tr><td>2026-09-19T05:32:02</td><td>CP23</td><td>SRV-SQL01</td><td>Ping depuis cet hôte</td><td class='skip'>SKIP</td><td>option --ping-check non activée</td></tr>
+<tr><td>2026-09-19T05:32:04</td><td>CP30</td><td>SRV-SQL01</td><td>Applicatif : systemd up</td><td class='ok'>OK</td><td>exit 0: running</td></tr>
+<tr><td>2026-09-19T05:32:06</td><td>CP30</td><td>SRV-SQL01</td><td>Applicatif : SQL Server service</td><td class='ko'>KO</td><td>exit 0: running</td></tr>
+<tr><td>2026-09-19T05:32:53</td><td>CP40</td><td>SRV-SQL01</td><td>VM de test détruite, overlays supprimés, disques dépubliés</td><td class='ok'>OK</td><td>VM 9903, publish m-rp-srv-sql01</td></tr></table>
+<p><small>Généré par pve_backup_boot.py v2.0.0 (licence MIT). Fichiers associés : RecoveryVerification-20260919-050000.csv, RecoveryVerification-20260919-050000.json, journal RecoveryVerification-20260919-050000.log.</small></p>
+</body></html>
