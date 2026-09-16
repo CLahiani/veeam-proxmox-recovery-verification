@@ -1,0 +1,23 @@
+# /etc/systemd/system/veeam-recovery-verification.service
+# Runs the verification once; scheduled by veeam-recovery-verification.timer.
+# Install:  cp deploy/*.service deploy/*.timer /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now veeam-recovery-verification.timer
+[Unit]
+Description=Veeam Recovery Verification - boot Proxmox VE VMs from backup in an isolated network
+After=network-online.target pve-cluster.service pvedaemon.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/veeam-recovery-verification
+# Secrets file: {"VBR_USER": "...", "VBR_PASSWORD": "...", "PVE_TOKEN_ID": "root@pam!rv", "PVE_TOKEN_SECRET": "..."}  (chmod 600)
+ExecStart=/usr/bin/python3 /opt/veeam-recovery-verification/pve_backup_boot.py \
+    --config /opt/veeam-recovery-verification/RecoveryVerification.json \
+    --secrets-file /root/.veeam-rv-secrets.json \
+    --report-dir /var/lib/veeam-recovery-verification/reports \
+    --vm SRV-AD01 --vm SRV-FILE01 \
+    --cleanup --fail-on-warning
+# Exit codes 0 / 1 / 2 are all "the run completed"; keep the unit green so the timer keeps firing, read results from the reports.
+SuccessExitStatus=1 2
+TimeoutStartSec=2h
+Nice=10

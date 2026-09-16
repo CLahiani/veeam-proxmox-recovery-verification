@@ -1,0 +1,11 @@
+# /etc/systemd/system/veeam-recovery-verification.timer
+[Unit]
+Description=Daily Veeam Recovery Verification (Proxmox VE, boot from backup)
+
+[Timer]
+OnCalendar=*-*-* 06:00:00
+RandomizedDelaySec=15m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
