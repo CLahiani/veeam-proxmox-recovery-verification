@@ -1,0 +1,68 @@
+{
+  "Veeam": {
+    "VbrServer": "vbr.example.local",
+    "VbrPort": 9419,
+    "VbrApiVersion": "1.3-rev2",
+    "NodeCredentialsName": "root@pve-node01"
+  },
+  "Proxmox": {
+    "ApiHost": "pve-node01.example.local",
+    "ApiPort": 8006,
+    "Node": "pve-node01",
+    "SshHost": "pve-node01.example.local",
+    "SshUser": "root",
+    "SshKeyPath": "~/.ssh/id_ed25519",
+    "MountRoot": "/run/media/Veeam.Mount.Disks"
+  },
+  "Target": {
+    "IsolatedBridge": "vmbr1",
+    "IsolatedVlanTag": 4000,
+    "OverlayStoragePath": "/var/lib/vz/images/rv-overlays",
+    "VmNamePrefix": "rv-",
+    "VmIdRangeStart": 9900
+  },
+  "VmDefaults": {
+    "Memory": 4096,
+    "Cores": 2,
+    "Cpu": "host",
+    "Machine": "q35",
+    "Bios": "seabios",
+    "ScsiHw": "virtio-scsi-pci",
+    "OsType": "l26",
+    "Agent": 1,
+    "EfiStorage": ""
+  },
+  "VmOverrides": {
+    "SRV-WIN01": { "OsType": "win11", "Bios": "ovmf", "EfiStorage": "local-lvm", "Memory": 8192 },
+    "SRV-AD01":  { "OsType": "win11", "Bios": "ovmf", "EfiStorage": "local-lvm", "Memory": 8192, "Cores": 4 }
+  },
+  "Isolation": {
+    "SwitchIsolationConfirmed": false
+  },
+  "Thresholds": {
+    "MaxRestorePointAgeHours": 30,
+    "MaxBootMinutes": 20,
+    "GuestAgentTimeoutMinutes": 10,
+    "PublishTimeoutMinutes": 15,
+    "PollIntervalSeconds": 15
+  },
+  "AppChecks": {
+    "*": [
+      { "Type": "Tcp", "Port": 22, "Label": "SSH" }
+    ],
+    "SRV-AD01": [
+      { "Type": "Ldap", "Port": 389, "Label": "LDAP" },
+      { "Type": "Dns", "Name": "example.local", "Label": "Zone DNS" },
+      { "Type": "Tcp", "Port": 88, "Label": "Kerberos" }
+    ],
+    "SRV-FILE01": [
+      { "Type": "Tcp", "Port": 445, "Label": "SMB" }
+    ],
+    "SRV-WEB01": [
+      { "Type": "Http", "Url": "https://{ip}/health", "ExpectedStatus": 200, "Label": "Health endpoint" }
+    ],
+    "SRV-SQL01": [
+      { "Type": "Sql", "Port": 1433, "Query": "SELECT COUNT(*) FROM sys.databases WHERE state_desc='ONLINE'", "Label": "Bases ONLINE" }
+    ]
+  }
+}
