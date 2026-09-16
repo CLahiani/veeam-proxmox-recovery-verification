@@ -2,100 +2,110 @@
 
 [← User guide](user-guide.md) · [Checkpoints →](checkpoints.md) · 🇫🇷 [Version française](../fr/configuration.md)
 
-JSON file, `.\RecoveryVerification.json` by default (`-ConfigPath`). Generate with `-InitConfig` or copy `RecoveryVerification.sample.json`.
+JSON file, `./RecoveryVerification.json` by default (`-c`). Generate with `--init-config` or copy `RecoveryVerification.sample.json`.
 
-**Precedence:** built-in defaults ← JSON file ← command-line parameters. `AppChecks` and `VmOverrides`, when present in the file, **replace** the defaults entirely.
-
-> Keep `RecoveryVerification.json` out of source control (it is in `.gitignore`).
+**Precedence:** built-in defaults ← JSON file ← command-line overrides. `AppChecks` and `VmOverrides`, when present in the file, **replace** the defaults entirely. Keep the real file out of git (`.gitignore`).
 
 ## `Veeam`
 
-| Key | CLI override | Description | Default |
+| Key | CLI | Description | Default |
 |---|---|---|---|
-| `VbrServer` | `-VbrServer` | VBR 13.x server (FQDN / IP). | `vbr.example.local` |
-| `VbrPort` | `-VbrPort` | REST API port. | `9419` |
-| `VbrApiVersion` | `-VbrApiVersion` | `x-api-version` header: **`1.3-rev2` = 13.1**, `1.3-rev1` = 13.0. | `1.3-rev2` |
-| `NodeCredentialsName` | `-NodeCredentialsName` | Username or description of the **Linux credentials record stored in VBR** for root on the node. Resolved to its ID via `GET /api/v1/credentials`. | `root@pve-node01` |
+| `VbrServer` / `VbrPort` | `--vbr-server` / `--vbr-port` | VBR 13.x server and REST port. | `vbr.example.local` / `9419` |
+| `VbrApiVersion` | `--vbr-api-version` | `x-api-version`: **`1.3-rev2` = 13.1**, `1.3-rev1` = 13.0. | `1.3-rev2` |
+| `NodeCredentialsName` | `--node-credentials-name` | Username or description of the **Linux credentials record stored in VBR** for root on this node. | `root@pve-node01` |
+| `TargetServerName` | `--target-server-name` | Name VBR uses to reach this node for FUSE publishing (`targetServerName`); must resolve **from the VBR server**. Empty = this host's FQDN. | `""` |
 
 ## `Proxmox`
 
-| Key | CLI override | Description | Default |
+| Key | CLI | Description | Default |
 |---|---|---|---|
-| `ApiHost` / `ApiPort` | `-PveApiHost` / `-PveApiPort` | Proxmox API endpoint (any cluster node). | `pve-node01.example.local` / `8006` |
-| `Node` | `-PveNode` | Node name (as in `/nodes`) hosting the test VMs and receiving the FUSE publish. | `pve-node01` |
-| `SshHost` | `-PveSshHost` | SSH endpoint of that node. Also passed to VBR as `targetServerName` for publishing, so it must be resolvable **from the VBR server**. | `pve-node01.example.local` |
-| `SshUser` / `SshKeyPath` | `-PveSshUser` / `-PveSshKeyPath` | `root` and the private key on the probe (`~` expands to the profile). | `root` / `~/.ssh/id_ed25519` |
-| `MountRoot` | — | Where Veeam FUSE publishing exposes raw disk images on the node. | `/run/media/Veeam.Mount.Disks` |
+| `ApiHost` / `ApiPort` | `--pve-api-host` / `--pve-api-port` | Proxmox API endpoint. `localhost` when running on the node. | `localhost` / `8006` |
+| `Node` | `--pve-node` | Node name as in `/nodes`. Empty = this machine's short hostname. | `""` |
+| `MountRoot` | — | Where Veeam FUSE publishing exposes raw disk images. | `/run/media/Veeam.Mount.Disks` |
 
 ## `Target`
 
-| Key | CLI override | Description | Default |
+| Key | CLI | Description | Default |
 |---|---|---|---|
-| `IsolatedBridge` | `-IsolatedBridge` | Bridge for the test VMs. Must exist on the node, carry **no IP**. | `vmbr1` |
-| `IsolatedVlanTag` | `-IsolatedVlanTag` | VLAN tag added to the test NICs, or `null` for an untagged isolated bridge. CP21 enforces bridge **and** tag. | `4000` |
-| `OverlayStoragePath` | `-OverlayStoragePath` | Node-local, **file-based** path for qcow2 overlays (one sub-folder per VMID). | `/var/lib/vz/images/rv-overlays` |
-| `VmNamePrefix` | `-VmNamePrefix` | Test VM names `<prefix><source>` lower-cased, non `[a-z0-9-]` replaced by `-`. Also used to recognise leftovers (CP04). | `rv-` |
-| `VmIdRangeStart` | `-VmIdRangeStart` | First VMID for test VMs; 100 ids reserved. Existing ids are skipped. | `9900` |
+| `IsolatedBridge` | `--isolated-bridge` | Bridge for the test VMs; must exist, carry **no IP**. | `vmbr1` |
+| `IsolatedVlanTag` | `--isolated-vlan-tag` | VLAN tag for the test NICs, or `null` for an untagged isolated bridge. CP21 enforces bridge **and** tag. | `4000` |
+| `OverlayStoragePath` | `--overlay-storage-path` | Node-local, **file-based** path for qcow2 overlays (sub-folder per VMID). | `/var/lib/vz/images/rv-overlays` |
+| `VmNamePrefix` | `--vm-name-prefix` | Test VM names `<prefix><source>` lower-cased, `[^a-z0-9-]` → `-`. Also identifies leftovers. | `rv-` |
+| `VmIdRangeStart` | `--vmid-range-start` | First VMID for test VMs; 100 ids reserved, existing ids skipped. | `9900` |
 
 ## `VmDefaults` / `VmOverrides`
 
-Virtual hardware of the throw-away VM. `VmDefaults` applies to every VM; `VmOverrides["<source VM name>"]` overrides any key for that VM.
+Virtual hardware of the throw-away VM (not derivable from the backup). `VmDefaults` for all, `VmOverrides["<source VM>"]` per VM.
 
 | Key | Meaning | Default | Notes |
 |---|---|---|---|
-| `Memory` (MB), `Cores`, `Cpu`, `Machine` | `qm create` values | `4096`, `2`, `host`, `q35` | Use `Cpu: x86-64-v2-AES` if `host` is refused. |
-| `Bios` | `seabios` or `ovmf` | `seabios` | UEFI source VMs need `ovmf`. |
-| `EfiStorage` | Storage for the EFI vars disk (`--efidisk0 <storage>:1`) | `""` | Required when `Bios: ovmf`; block storage (`local-lvm`) is fine. `pre-enrolled-keys=0` (Secure Boot off). |
-| `ScsiHw` | SCSI controller | `virtio-scsi-pci` | Disks are attached as `scsi0…N`. |
-| `OsType` | `l26`, `win11`, `win10`… | `l26` | Affects QEMU defaults (e.g. HPET, localtime). |
-| `Agent` | Enable guest agent channel | `1` | Needed for CP22. |
+| `Memory` (MB), `Cores`, `Cpu`, `Machine` | `qm create` values | `4096`, `2`, `host`, `q35` | `Cpu: x86-64-v2-AES` if `host` is refused. |
+| `Bios` | `seabios` / `ovmf` | `seabios` | UEFI sources need `ovmf`. |
+| `EfiStorage` | Storage for `--efidisk0 <storage>:1` | `""` | Required with `ovmf`; `local-lvm` is fine. Secure Boot off (`pre-enrolled-keys=0`). |
+| `ScsiHw`, `OsType`, `Agent` | controller, OS type, guest agent channel | `virtio-scsi-pci`, `l26`, `1` | `OsType: win11` for Windows. `Agent: 1` is required for CP22 / GuestExec. |
 
-```json
-"VmOverrides": {
-  "SRV-WIN01": { "OsType": "win11", "Bios": "ovmf", "EfiStorage": "local-lvm", "Memory": 8192 }
-}
-```
-
-Tip: read the original VM's `qm config <vmid>` once and mirror `bios`, `ostype`, `machine`, `cores`, `memory`.
+Tip: mirror `bios`, `ostype`, `machine`, `cores`, `memory` from the source VM's `qm config <vmid>`.
 
 ## `Isolation`
 
 | Key | Description | Default |
 |---|---|---|
-| `SwitchIsolationConfirmed` | Set to `true` once the network team has confirmed that `IsolatedVlanTag` is not routed and not trunked anywhere except the probe port. Required by CP02 when the bridge has an uplink. Recorded in the report. | `false` |
+| `SwitchIsolationConfirmed` | `true` once the network team has confirmed the VLAN is neither routed nor trunked elsewhere. Required by CP02 when the bridge has an uplink; recorded in the report. | `false` |
 
 ## `Thresholds`
 
-| Key | CLI override | Description | Default |
+| Key | CLI | Description | Default |
 |---|---|---|---|
-| `MaxRestorePointAgeHours` | `-MaxRestorePointAgeHours` | **RPO target** (CP11 `KO` if older). | `30` |
-| `MaxBootMinutes` | `-MaxBootMinutes` | **RTO target** for publish + overlay + create + start until the guest agent reports an IP (CP13 `WARN` if exceeded). | `20` |
-| `GuestAgentTimeoutMinutes` | `-GuestAgentTimeoutMinutes` | Max wait for `running` + guest-agent IP (CP20–CP22). | `10` |
+| `MaxRestorePointAgeHours` | `--max-restore-point-age-hours` | **RPO target** (CP11 `KO` if older). | `30` |
+| `MaxBootMinutes` | `--max-boot-minutes` | **RTO target**: publish → overlay → create → start → guest-agent IP (CP13 `WARN`). | `20` |
+| `GuestAgentTimeoutMinutes` | `--guest-agent-timeout-minutes` | Max wait for `running` + guest-agent IP (CP20–CP22). | `10` |
 | `PublishTimeoutMinutes` | — | Max wait for the Data Integration API session (CP12). | `15` |
-| `PollIntervalSeconds` | — | Polling interval for sessions and VM state. | `15` |
+| `PollIntervalSeconds` | — | Polling interval. | `15` |
 
 ## `AppChecks`
 
-Map **VM name → list of checks**; `"*"` applies to every VM and is merged with the VM-specific list. One **CP30** per check, run **from the probe** against the guest-agent IP.
+Map **VM name → list of checks**; `"*"` applies to every VM and is merged with the VM list. One **CP30** per check.
 
-| Type | Fields | Passes when |
+### `GuestExec` — recommended
+
+Runs a command **inside the test VM** through the QEMU guest agent (`agent/exec` + `agent/exec-status`). Needs no network path from the node to the isolated VLAN, works for Linux and Windows guests, and can test anything the OS can (services, ports on localhost, HTTP on localhost, database queries with local tools).
+
+| Field | Description | Default |
 |---|---|---|
-| `Tcp` | `Port` | TCP connect succeeds. |
-| `Http` | `Url` (with `{ip}`), `ExpectedStatus` (default 200) | GET returns the expected status (certificates not validated, 15 s timeout). |
-| `Ldap` | `Port` | TCP open **and** anonymous RootDSE bind succeeds. |
-| `Dns` | `Name` | `Resolve-DnsName <Name> -Server <ip>` returns records. |
-| `Sql` | `Port`, `Query` | `Invoke-Sqlcmd` returns a result (needs the `SqlServer` module; integrated auth). |
+| `Command` | Command line passed to the shell. | required |
+| `Shell` | `sh`, `bash`, `powershell`, `cmd`, or an absolute executable. | `sh` |
+| `ExpectedExitCode` | Exit code that means success. | `0` |
+| `ExpectedOutput` | Optional regex (multiline) that stdout must match. | — |
+| `TimeoutSeconds` | Max execution time. | `60` |
+| `Label` | Text shown in CP30. | `Type` |
 
 ```json
-"AppChecks": {
-  "*":         [ { "Type": "Tcp", "Port": 22, "Label": "SSH" } ],
-  "SRV-AD01":  [ { "Type": "Ldap", "Port": 389, "Label": "LDAP" }, { "Type": "Dns", "Name": "example.local", "Label": "DNS zone" } ],
-  "SRV-WEB01": [ { "Type": "Http", "Url": "https://{ip}/health", "ExpectedStatus": 200, "Label": "Health" } ]
-}
+{ "Type": "GuestExec", "Command": "systemctl is-active sshd", "ExpectedOutput": "^active", "Label": "sshd" }
+{ "Type": "GuestExec", "Shell": "powershell", "Command": "(Get-Service NTDS).Status", "ExpectedOutput": "Running", "Label": "AD DS" }
+{ "Type": "GuestExec", "Command": "curl -sk -o /dev/null -w '%{http_code}' https://localhost/health", "ExpectedOutput": "^200", "Label": "Health" }
+{ "Type": "GuestExec", "Shell": "powershell", "Command": "Invoke-Sqlcmd -Query \"SELECT COUNT(*) FROM sys.databases WHERE state_desc='ONLINE'\" | Select -Expand Column1", "ExpectedOutput": "^[1-9]", "Label": "Online DBs" }
 ```
 
-> The test VM is a clone in an isolated network: domain-integrated authentication may not work unless a domain controller is booted in the same run. Prefer credential-less checks for unattended runs.
+The guest agent must be running in the guest; on Windows the *QEMU Guest Agent* service and the VirtIO serial driver. Proxmox VE 9 also requires the `VM.GuestAgent.Unrestricted` privilege on the token for `exec`.
+
+### Network checks — from the node
+
+Only meaningful if the host running the script has a route to the isolated network (usually **not** the case, by design). They use the guest-agent IP (CP22).
+
+| Type | Fields | Passes when | Needs |
+|---|---|---|---|
+| `Tcp` | `Port` | TCP connect OK | — |
+| `Http` | `Url` (`{ip}`), `ExpectedStatus` | expected status (TLS not validated) | — |
+| `Ldap` | `Port` | anonymous bind OK | `ldap3` |
+| `Dns` | `Name`, `RecordType` | records returned by `<ip>` | `dnspython` |
+| `Sql` | `Port`, `Query`, `User`, `Password` | query returns a row | `pymssql` |
+
+Missing module → check reported `SKIP` with the module name.
+
+## Secrets
+
+Never in the JSON configuration. Order: `--secrets-file` (JSON, `chmod 600`) → environment (`VBR_USER`, `VBR_PASSWORD`, `PVE_TOKEN_ID`, `PVE_TOKEN_SECRET`) → interactive prompt.
 
 ## Report language
 
-`-Language en|fr` (or system culture) drives console strings, HTML labels and the `Language` field of the JSON report. CSV headers are technical and identical in both languages.
+`-l en|fr` (or system locale) drives console strings, HTML labels and the `Language` field of the JSON report. CSV headers are technical and identical in both languages.
